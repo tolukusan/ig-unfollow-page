@@ -1,0 +1,35 @@
+---
+interface Props {
+  lines: string[];
+  id: string;
+  title?: string;
+}
+const { lines, id, title = 'Console' } = Astro.props;
+---
+
+<div class="terminal-mock will-animate" id={id}>
+  <div class="rounded-2xl overflow-hidden shadow-2xl shadow-black/10 border border-white/5">
+    <!-- Title bar -->
+    <div class="flex items-center gap-2 px-4 py-3 bg-[#2A2A2D] border-b border-white/5">
+      <span class="w-3 h-3 rounded-full bg-[#FF5F57]"></span>
+      <span class="w-3 h-3 rounded-full bg-[#FEBC2E]"></span>
+      <span class="w-3 h-3 rounded-full bg-[#28C840]"></span>
+      <span class="ml-3 text-xs text-[#86868B] font-mono">{title}</span>
+    </div>
+    <!-- Terminal body -->
+    <div class="p-6 bg-[#1C1C1E] min-h-[220px] font-mono text-sm leading-relaxed space-y-1">
+      {lines.map((line, i) => (
+        <div
+          class="term-line flex gap-2"
+          data-terminal-id={id}
+          data-index={i}
+          style={`transition-delay: ${i * 0.12}s`}
+        >
+          <span class="text-[#FF9A3C] select-none flex-shrink-0">›</span>
+          <span class="text-[#E5E5EA]">{line}</span>
+        </div>
+      ))}
+      <div class="term-cursor text-[#FF6B00] animate-pulse mt-2" data-terminal-id={id} style="opacity: 0; transition-delay: 0.1s;">█</div>
+    </div>
+  </div>
+</div>

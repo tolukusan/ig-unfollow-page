@@ -1,0 +1,530 @@
+---
+// No server props needed — fully client-side
+---
+
+<section class="bg-white py-32 px-6" id="tool">
+  <div class="max-w-6xl mx-auto">
+
+    <!-- Section label -->
+    <div class="text-center mb-16">
+      <p class="text-sm font-semibold uppercase tracking-widest text-orange mb-4">Step 4</p>
+      <h2 class="text-5xl md:text-6xl font-bold text-apple-black tracking-tight leading-tight">
+        Build your unfollow list
+      </h2>
+      <p class="mt-5 text-xl text-apple-gray max-w-2xl mx-auto">
+        Paste your collected data, review who to unfollow, then generate your script.
+      </p>
+    </div>
+
+    <!-- ── PHASE 1: PASTE ── -->
+    <div id="phase-paste">
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+
+        <!-- Followers paste -->
+        <div>
+          <label class="block text-sm font-semibold text-apple-black mb-2">
+            Followers list
+            <span class="ml-2 text-apple-muted font-normal">— output from Step 1</span>
+          </label>
+          <textarea
+            id="followers-input"
+            rows="8"
+            placeholder='["username1", "username2", ...]'
+            class="w-full rounded-2xl border border-gray-200 bg-[#F5F5F7] px-5 py-4 font-mono text-sm text-apple-black placeholder-apple-muted focus:outline-none focus:ring-2 focus:ring-orange/40 resize-none transition"
+          ></textarea>
+          <p id="followers-error" class="mt-2 text-sm text-red-500 hidden"></p>
+        </div>
+
+        <!-- Not-following-back paste -->
+        <div>
+          <label class="block text-sm font-semibold text-apple-black mb-2">
+            Not-following-back list
+            <span class="ml-2 text-apple-muted font-normal">— output from Step 3</span>
+          </label>
+          <textarea
+            id="nfb-input"
+            rows="8"
+            placeholder='["username1", "username2", ...]'
+            class="w-full rounded-2xl border border-gray-200 bg-[#F5F5F7] px-5 py-4 font-mono text-sm text-apple-black placeholder-apple-muted focus:outline-none focus:ring-2 focus:ring-orange/40 resize-none transition"
+          ></textarea>
+          <p id="nfb-error" class="mt-2 text-sm text-red-500 hidden"></p>
+        </div>
+      </div>
+
+      <div class="flex justify-center">
+        <button
+          id="load-btn"
+          class="px-10 py-4 rounded-2xl font-semibold text-white text-lg cursor-pointer border-none transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          style="background: linear-gradient(135deg, #FF6B00, #FF9A3C); box-shadow: 0 8px 30px rgba(255,107,0,0.35);"
+        >
+          Load &amp; Review
+        </button>
+      </div>
+    </div>
+
+    <!-- ── PHASE 2: REVIEW ── -->
+    <div id="phase-review" class="hidden">
+
+      <div class="grid md:grid-cols-2 gap-8 mb-10">
+
+        <!-- Left: Followers (read-only) -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-apple-black">Followers</h3>
+            <span id="followers-count-badge" class="text-sm font-semibold px-3 py-1 rounded-full bg-[#F5F5F7] text-apple-gray">0</span>
+          </div>
+          <div
+            id="followers-list-display"
+            class="rounded-2xl border border-gray-200 bg-[#F5F5F7] overflow-y-auto"
+            style="max-height: 420px;"
+          >
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Right: Not-following-back (editable) -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-apple-black">To Unfollow</h3>
+            <span
+              id="unfollow-counter"
+              class="text-sm font-semibold px-3 py-1 rounded-full text-white"
+              style="background: linear-gradient(135deg, #FF6B00, #FF9A3C);"
+            >0 to unfollow</span>
+          </div>
+          <p class="text-sm text-apple-muted mb-3">Click <strong class="text-apple-black font-semibold">Keep</strong> on anyone you still want to follow — they'll be removed from the unfollow list.</p>
+
+          <!-- Search -->
+          <div class="relative mb-3">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-apple-muted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              id="nfb-search"
+              type="search"
+              placeholder="Search usernames..."
+              class="w-full rounded-xl border border-gray-200 bg-[#F5F5F7] pl-10 pr-4 py-2.5 text-sm text-apple-black placeholder-apple-muted focus:outline-none focus:ring-2 focus:ring-orange/40 transition"
+            />
+          </div>
+
+          <div
+            id="nfb-list-display"
+            class="rounded-2xl border border-gray-200 bg-[#F5F5F7] overflow-y-auto"
+            style="max-height: 360px;"
+          >
+            <!-- Populated by JS -->
+          </div>
+          <p id="search-empty" class="hidden text-sm text-apple-muted text-center py-6">No results for that search.</p>
+        </div>
+      </div>
+
+      <!-- Actions row -->
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <button
+          id="back-to-paste-btn"
+          class="text-sm text-apple-gray underline cursor-pointer bg-none border-none p-0 hover:text-apple-black transition"
+        >
+          ← Back to paste
+        </button>
+        <button
+          id="generate-btn"
+          class="px-10 py-4 rounded-2xl font-semibold text-white text-lg cursor-pointer border-none transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          style="background: linear-gradient(135deg, #FF6B00, #FF9A3C); box-shadow: 0 8px 30px rgba(255,107,0,0.35);"
+        >
+          Generate Script
+        </button>
+      </div>
+    </div>
+
+    <!-- ── PHASE 3: GENERATED SCRIPT ── -->
+    <div id="phase-generated" class="hidden">
+
+      <div class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-semibold text-apple-gray">Your unfollow script — ready to paste</p>
+          <div class="flex gap-3">
+            <button
+              id="back-to-review-btn"
+              class="text-sm text-apple-gray underline cursor-pointer bg-none border-none p-0 hover:text-apple-black transition"
+            >
+              ← Back to review
+            </button>
+            <button
+              id="copy-script-btn"
+              class="copy-btn-feedback px-5 py-2 rounded-xl font-semibold text-white text-sm cursor-pointer border-none transition-all"
+              style="background: linear-gradient(135deg, #FF6B00, #FF9A3C);"
+            >
+              Copy Script
+            </button>
+          </div>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden shadow-xl shadow-black/10 border border-white/5">
+          <div class="flex items-center gap-2 px-4 py-3 bg-[#2A2A2D] border-b border-white/5">
+            <span class="w-3 h-3 rounded-full bg-[#FF5F57]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#FEBC2E]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#28C840]"></span>
+            <span class="ml-3 text-xs text-[#86868B] font-mono">unfollow-script.js</span>
+          </div>
+          <pre
+            id="generated-script-pre"
+            class="m-0 p-6 bg-[#1C1C1E] text-[#E5E5EA] font-mono text-xs leading-relaxed overflow-x-auto"
+            style="max-height: 400px;"
+          ></pre>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="rounded-2xl bg-[#F5F5F7] border border-gray-100 p-6">
+        <p class="text-sm font-semibold text-apple-black mb-3">How to run it</p>
+        <ol class="space-y-2 text-sm text-apple-gray list-none p-0 m-0">
+          {[
+            'Open Instagram in your browser and go to your profile',
+            'Click the Following count to open the Following modal',
+            'Open DevTools — press F12 (Windows) or ⌘⌥J (Mac)',
+            'Click the Console tab',
+            'Paste the script and press Enter',
+            'Watch the console — it will log each unfollow and pause between them',
+          ].map((step, i) => (
+            <li class="flex gap-3 items-start">
+              <span
+                class="flex-shrink-0 w-5 h-5 rounded-full text-white text-xs font-bold flex items-center justify-center mt-0.5"
+                style="background: linear-gradient(135deg, #FF6B00, #FF9A3C);"
+              >{i + 1}</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// ──────────────────────────────────────────────
+// State
+// ──────────────────────────────────────────────
+let followersArray: string[] = [];
+let nfbArray: string[] = [];       // mutable — user can X people out
+let searchQuery = '';
+
+// ──────────────────────────────────────────────
+// Element refs
+// ──────────────────────────────────────────────
+const phasePaste     = document.getElementById('phase-paste')!;
+const phaseReview    = document.getElementById('phase-review')!;
+const phaseGenerated = document.getElementById('phase-generated')!;
+
+const followersInput = document.getElementById('followers-input') as HTMLTextAreaElement;
+const nfbInput       = document.getElementById('nfb-input') as HTMLTextAreaElement;
+const followersError = document.getElementById('followers-error')!;
+const nfbError       = document.getElementById('nfb-error')!;
+
+const followersBadge  = document.getElementById('followers-count-badge')!;
+const unfollowCounter = document.getElementById('unfollow-counter')!;
+const followersListEl = document.getElementById('followers-list-display')!;
+const nfbListEl       = document.getElementById('nfb-list-display')!;
+const searchInput     = document.getElementById('nfb-search') as HTMLInputElement;
+const searchEmpty     = document.getElementById('search-empty')!;
+
+const generatedPre = document.getElementById('generated-script-pre')!;
+
+// ──────────────────────────────────────────────
+// Phase transitions
+// ──────────────────────────────────────────────
+function show(el: HTMLElement) { el.classList.remove('hidden'); }
+function hide(el: HTMLElement) { el.classList.add('hidden'); }
+
+function goToReview() {
+  hide(phasePaste);
+  hide(phaseGenerated);
+  show(phaseReview);
+  document.getElementById('tool')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function goToPaste() {
+  hide(phaseReview);
+  hide(phaseGenerated);
+  show(phasePaste);
+}
+
+function goToGenerated() {
+  hide(phaseReview);
+  show(phaseGenerated);
+  generatedPre.textContent = buildScript(nfbArray);
+  document.getElementById('tool')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ──────────────────────────────────────────────
+// Parsing
+// ──────────────────────────────────────────────
+function parseJsonArray(raw: string): string[] | null {
+  try {
+    const parsed = JSON.parse(raw.trim());
+    if (Array.isArray(parsed) && parsed.every(x => typeof x === 'string')) {
+      return parsed.map(s => s.trim()).filter(Boolean);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// ──────────────────────────────────────────────
+// Render helpers
+// ──────────────────────────────────────────────
+function renderFollowers() {
+  followersBadge.textContent = `${followersArray.length.toLocaleString()}`;
+  followersListEl.innerHTML = followersArray
+    .map(u => `
+      <div class="flex items-center gap-3 px-5 py-3 border-b border-gray-100 last:border-0">
+        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex-shrink-0"></div>
+        <a href="https://instagram.com/${u}/" target="_blank" rel="noopener noreferrer"
+           class="text-sm text-apple-black font-mono truncate hover:text-orange transition-colors">@${u}</a>
+      </div>
+    `)
+    .join('');
+}
+
+function renderNfbList() {
+  const q = searchQuery.toLowerCase();
+  const filtered = q ? nfbArray.filter(u => u.toLowerCase().includes(q)) : nfbArray;
+
+  nfbListEl.innerHTML = filtered
+    .map(u => `
+      <div class="flex items-center gap-3 px-5 py-3 border-b border-gray-100 last:border-0 group">
+        <div class="w-7 h-7 rounded-full flex-shrink-0" style="background: linear-gradient(135deg, #FF6B00, #FF9A3C);"></div>
+        <a href="https://instagram.com/${u}/" target="_blank" rel="noopener noreferrer"
+           class="flex-1 text-sm text-apple-black font-mono truncate hover:text-orange transition-colors">@${u}</a>
+        <button
+          class="remove-btn opacity-0 group-hover:opacity-100 px-2.5 py-1 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 flex items-center gap-1 text-xs font-semibold cursor-pointer border-none transition-all flex-shrink-0"
+          data-username="${u}"
+          title="Keep following this person"
+        >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Keep
+        </button>
+      </div>
+    `)
+    .join('');
+
+  // Show/hide empty state
+  if (filtered.length === 0 && q) {
+    show(searchEmpty);
+    hide(nfbListEl);
+  } else {
+    hide(searchEmpty);
+    show(nfbListEl);
+  }
+
+  updateCounter();
+
+  // Attach remove handlers
+  nfbListEl.querySelectorAll<HTMLButtonElement>('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const username = btn.dataset.username!;
+      nfbArray = nfbArray.filter(u => u !== username);
+      renderNfbList();
+    });
+  });
+}
+
+function updateCounter() {
+  const n = nfbArray.length;
+  unfollowCounter.textContent = `${n.toLocaleString()} to unfollow`;
+}
+
+// ──────────────────────────────────────────────
+// Script generator
+// ──────────────────────────────────────────────
+function buildScript(usernames: string[]): string {
+  const arr = JSON.stringify(usernames, null, 4);
+  return `(async () => {
+const toUnfollow = ${arr};
+
+const STORAGE_KEY = "ig_unfollow_progress";
+const MAX_CONSECUTIVE_FAILURES = 4;
+const RATE_LIMIT_PAUSE_MS = 60_000;
+
+const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+const startIndex = saved.index ?? 0;
+console.log(\`🎯 \${toUnfollow.length} accounts to unfollow — starting at index \${startIndex}\`);
+
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+const waitFor = (fn, { timeout = 8000, interval = 200 } = {}) =>
+    new Promise((resolve) => {
+        const deadline = Date.now() + timeout;
+        const tick = () => {
+            const result = fn();
+            if (result) return resolve(result);
+            if (Date.now() >= deadline) return resolve(null);
+            setTimeout(tick, interval);
+        };
+        tick();
+    });
+
+function setReactInputValue(input, value) {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+    setter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function getSearchInput() {
+    return (
+        document.querySelector('input[aria-label="Search input"]') ??
+        document.querySelector('input[placeholder="Search"]')
+    );
+}
+
+function clearSearch(input) { setReactInputValue(input, ""); }
+
+const unfollowOne = async (username) => {
+    const searchInput = getSearchInput();
+    if (!searchInput) throw new Error("Search input not found — is the Following modal open?");
+
+    const listModal = searchInput.closest('[role="dialog"]');
+    if (!listModal) throw new Error("Could not find the Following modal — is it open?");
+
+    setReactInputValue(searchInput, username);
+
+    const userLink = await waitFor(() => listModal.querySelector(\`a[href="/\${username}/"]\`));
+    if (!userLink) {
+        console.warn(\`⚠️ \${username} not found after search — skipping\`);
+        clearSearch(searchInput);
+        return false;
+    }
+
+    const followBtn = [...listModal.querySelectorAll("button")].find(
+        (b) => b.innerText.trim() === "Following"
+    );
+    if (!followBtn) {
+        console.warn(\`⚠️ Following button not found for \${username}\`);
+        clearSearch(searchInput);
+        return false;
+    }
+
+    followBtn.click();
+
+    const confirmBtn = await waitFor(() =>
+        [...document.querySelectorAll("button")].find((b) => b.innerText.trim() === "Unfollow")
+    );
+    if (!confirmBtn) {
+        console.warn(\`⚠️ Confirm modal didn't appear for \${username}\`);
+        clearSearch(searchInput);
+        return false;
+    }
+
+    confirmBtn.click();
+    await delay(300);
+    clearSearch(searchInput);
+    console.log(\`✅ Unfollowed \${username}\`);
+    return true;
+};
+
+const runUnfollow = async () => {
+    let consecutiveFailures = 0;
+
+    for (let i = startIndex; i < toUnfollow.length; i++) {
+        const username = toUnfollow[i];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ index: i }));
+
+        let success = false;
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                success = await unfollowOne(username);
+                if (success) break;
+            } catch (err) {
+                console.error(\`💥 Hard error for \${username}:\`, err.message);
+                break;
+            }
+            if (!success && attempt === 0) {
+                console.log(\`🔁 Retrying \${username}...\`);
+                await delay(2000);
+            }
+        }
+
+        if (!success) {
+            consecutiveFailures++;
+            if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                console.warn(\`🚨 \${consecutiveFailures} consecutive failures — possible rate limit. Pausing \${RATE_LIMIT_PAUSE_MS / 1000}s...\`);
+                await delay(RATE_LIMIT_PAUSE_MS);
+                consecutiveFailures = 0;
+            }
+        } else {
+            consecutiveFailures = 0;
+        }
+
+        if (i < toUnfollow.length - 1) {
+            const wait = 3000 + Math.random() * 2000;
+            console.log(\`⏳ Waiting \${Math.round(wait / 1000)}s...\`);
+            await delay(wait);
+        }
+    }
+
+    localStorage.removeItem(STORAGE_KEY);
+    console.log("🎉 All done!");
+};
+
+runUnfollow();
+})();`;
+}
+
+// ──────────────────────────────────────────────
+// Event listeners
+// ──────────────────────────────────────────────
+document.getElementById('load-btn')!.addEventListener('click', () => {
+  let valid = true;
+
+  const parsedFollowers = parseJsonArray(followersInput.value);
+  if (!parsedFollowers) {
+    followersError.textContent = 'Must be a valid JSON array of strings, e.g. ["user1", "user2"]';
+    followersError.classList.remove('hidden');
+    valid = false;
+  } else {
+    followersError.classList.add('hidden');
+  }
+
+  const parsedNfb = parseJsonArray(nfbInput.value);
+  if (!parsedNfb) {
+    nfbError.textContent = 'Must be a valid JSON array of strings, e.g. ["user1", "user2"]';
+    nfbError.classList.remove('hidden');
+    valid = false;
+  } else {
+    nfbError.classList.add('hidden');
+  }
+
+  if (!valid) return;
+
+  followersArray = parsedFollowers!;
+  nfbArray = [...parsedNfb!];
+  searchQuery = '';
+  searchInput.value = '';
+
+  renderFollowers();
+  renderNfbList();
+  goToReview();
+});
+
+document.getElementById('back-to-paste-btn')!.addEventListener('click', goToPaste);
+document.getElementById('back-to-review-btn')!.addEventListener('click', goToReview);
+document.getElementById('generate-btn')!.addEventListener('click', goToGenerated);
+
+searchInput.addEventListener('input', (e) => {
+  searchQuery = (e.target as HTMLInputElement).value;
+  renderNfbList();
+});
+
+document.getElementById('copy-script-btn')!.addEventListener('click', () => {
+  const btn = document.getElementById('copy-script-btn')!;
+  navigator.clipboard.writeText(generatedPre.textContent ?? '').then(() => {
+    btn.textContent = 'Copied!';
+    (btn as HTMLButtonElement).style.background = '#28C840';
+    setTimeout(() => {
+      btn.textContent = 'Copy Script';
+      (btn as HTMLButtonElement).style.background = '';
+    }, 2000);
+  });
+});
+</script>
